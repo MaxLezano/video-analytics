@@ -1,7 +1,8 @@
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Counter, List, Tuple
+from typing import List, Tuple
+from collections import Counter
 
 import cv2
 import norfair
@@ -111,9 +112,7 @@ class BaseClassifier(ABC):
 
         return detections
 
-    def accuarcy_on_folder(
-        self, folder_path: str, label: str
-    ) -> Tuple[float, List[np.ndarray]]:
+    def accuracy_on_folder(self, folder_path: str, label: str) -> Tuple[float, List[np.ndarray]]:
         """
         Calculates the accuracy of the classifier on a folder
 
@@ -139,7 +138,7 @@ class BaseClassifier(ABC):
 
         predictions = self.predict(images)
 
-        missclassified = [images[i] for i, x in enumerate(predictions) if x != label]
+        misclassified = [images[i] for i, x in enumerate(predictions) if x != label]
 
         counter = Counter()
         for prediction in predictions:
@@ -147,4 +146,4 @@ class BaseClassifier(ABC):
 
         print(json.dumps(counter, indent=4))
 
-        return counter[label] / len(predictions), missclassified
+        return counter[label] / len(predictions), misclassified

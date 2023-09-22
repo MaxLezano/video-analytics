@@ -158,6 +158,8 @@ class BaseDetector(ABC):
 
         Parameters
         ----------
+        self : ClassName
+            A reference to the instance of the class.
         predictions : pd.DataFrame
             DataFrame containing the bounding boxes and the class of the objects
         img : np.ndarray
@@ -247,6 +249,6 @@ class BaseDetector(ABC):
             xmax = round(row["xmax"])
             ymax = round(row["ymax"])
 
-            mask[ymin - margin : ymax + margin, xmin - margin : xmax + margin] = 0
+            mask[ymin - margin: ymax + margin, xmin - margin: xmax + margin] = 0
 
         return mask

@@ -1,9 +1,9 @@
-from array import array
 from typing import List
 
 import numpy as np
-import PIL
+from PIL import Image
 from norfair import Detection
+from numpy import ndarray
 
 from soccer.ball import Ball
 from soccer.draw import Draw
@@ -86,10 +86,9 @@ class Player:
         """
 
         if self.detection is None or ball.center is None:
-            return None
+            return -1
 
-        left_foot_distance = np.linalg.norm(ball.center - self.left_foot)
-        right_foot_distance = np.linalg.norm(ball.center - self.right_foot)
+        left_foot_distance, right_foot_distance = self.calculate_distance(ball)
 
         return min(left_foot_distance, right_foot_distance)
 
@@ -110,13 +109,12 @@ class Player:
         """
 
         if self.detection is None or ball.center is None:
-            return None
+            return np.array([])
 
-        left_foot_distance = np.linalg.norm(ball.center - self.left_foot)
-        right_foot_distance = np.linalg.norm(ball.center - self.right_foot)
+        left_foot_distance, right_foot_distance = self.calculate_distance(ball)
 
         if left_foot_distance < right_foot_distance:
-            return self.left_foot
+            return np.array(self.left_foot)
 
         return self.right_foot
 
@@ -137,25 +135,30 @@ class Player:
         """
 
         if self.detection is None or ball.center_abs is None:
-            return None
+            return np.array([])
 
-        left_foot_distance = np.linalg.norm(ball.center_abs - self.left_foot_abs)
-        right_foot_distance = np.linalg.norm(ball.center_abs - self.right_foot_abs)
+        left_foot_distance, right_foot_distance = self.calculate_distance(ball)
 
         if left_foot_distance < right_foot_distance:
-            return self.left_foot_abs
+            return np.array(self.left_foot)
 
         return self.right_foot_abs
 
-    def draw(
-        self, frame: PIL.Image.Image, confidence: bool = False, id: bool = False
-    ) -> PIL.Image.Image:
+    def calculate_distance(self, ball):
+        ball_center_array = np.array(ball.center)
+        left_foot_array = np.array(self.left_foot)
+        right_foot_array = np.array(self.right_foot)
+        left_foot_distance = np.linalg.norm(ball_center_array - left_foot_array)
+        right_foot_distance = np.linalg.norm(ball_center_array - right_foot_array)
+        return left_foot_distance, right_foot_distance
+
+    def draw(self, frame: Image.Image, confidence: bool = False, id: bool = False) -> Image.Image:
         """
         Draw the player on the frame
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
@@ -164,7 +167,7 @@ class Player:
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with player drawn
         """
         if self.detection is None:
@@ -175,7 +178,7 @@ class Player:
 
         return Draw.draw_detection(self.detection, frame, confidence=confidence, id=id)
 
-    def draw_pointer(self, frame: np.ndarray) -> np.ndarray:
+    def draw_pointer(self, frame: Image.Image) -> ndarray | Image.Image:
         """
         Draw a pointer above the player
 
@@ -203,7 +206,7 @@ class Player:
         return f"Player: {self.feet}, team: {self.team}"
 
     def __eq__(self, other: "Player") -> bool:
-        if isinstance(self, Player) == False or isinstance(other, Player) == False:
+        if not isinstance(self, Player) or not isinstance(other, Player):
             return False
 
         self_id = self.detection.data["id"]
@@ -237,10 +240,10 @@ class Player:
     @staticmethod
     def draw_players(
         players: List["Player"],
-        frame: PIL.Image.Image,
+        frame: Image.Image,
         confidence: bool = False,
         id: bool = False,
-    ) -> PIL.Image.Image:
+    ) -> Image.Image:
         """
         Draw all players on the frame
 
@@ -248,7 +251,7 @@ class Player:
         ----------
         players : List[Player]
             List of Player objects
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
@@ -257,7 +260,7 @@ class Player:
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with players drawn
         """
         for player in players:

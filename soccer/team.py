@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 
 class Team:
@@ -95,13 +95,13 @@ class Team:
         return self.name
 
     def __eq__(self, other: "Team") -> bool:
-        if isinstance(self, Team) == False or isinstance(other, Team) == False:
+        if not isinstance(self, Team) or not isinstance(other, Team):
             return False
 
         return self.name == other.name
 
     @staticmethod
-    def from_name(teams: List["Team"], name: str) -> "Team":
+    def from_name(teams: List["Team"], name: str) -> Optional["Team"]:
         """
         Return team object from name
 
@@ -114,8 +114,8 @@ class Team:
 
         Returns
         -------
-        Team
-            Team object
+        Team or None
+            Team object if found, or None if not found
         """
         for team in teams:
             if team.name == name:

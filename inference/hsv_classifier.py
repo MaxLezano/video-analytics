@@ -1,12 +1,12 @@
 import copy
-from typing import List
+from typing import List, Union
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
 from inference.base_classifier import BaseClassifier
-from inference.colors import all
+from inference.colors import all_colors
 
 
 class HSVClassifier(BaseClassifier):
@@ -51,9 +51,9 @@ class HSVClassifier(BaseClassifier):
         """
         super().__init__()
 
-        self.filters = [self.check_filter_format(filter) for filter in filters]
+        self.filters = [self.check_filter_format(color_filter) for color_filter in filters]
 
-    def check_tuple_format(self, a_tuple: tuple, name: str) -> tuple:
+    def check_tuple_format(self, a_tuple: tuple, name: str) -> None:
         """
         Check tuple format
 
@@ -175,13 +175,13 @@ class HSVClassifier(BaseClassifier):
 
         return color
 
-    def check_filter_format(self, filter: dict) -> dict:
+    def check_filter_format(self, color_filter: dict) -> dict:
         """
         Check filter format
 
         Parameters
         ----------
-        filter : dict
+        color_filter : dict
             Filter to check
 
         Returns
@@ -201,24 +201,24 @@ class HSVClassifier(BaseClassifier):
             If filter colors is not a list or a tuple
         """
 
-        if type(filter) != dict:
+        if type(color_filter) != dict:
             raise ValueError("Filter must be a dict")
-        if "name" not in filter:
+        if "name" not in color_filter:
             raise ValueError("Filter must have a name")
-        if "colors" not in filter:
+        if "colors" not in color_filter:
             raise ValueError("Filter must have colors")
 
-        if type(filter["name"]) != str:
+        if type(color_filter["name"]) != str:
             raise ValueError("Filter name must be a string")
 
-        if type(filter["colors"]) != list and type(filter["colors"] != tuple):
+        if type(color_filter["colors"]) != list and type(color_filter["colors"] != tuple):
             raise ValueError("Filter colors must be a list or tuple")
 
-        filter["colors"] = [
-            self.check_color_format(color) for color in filter["colors"]
+        color_filter["colors"] = [
+            self.check_color_format(color) for color in color_filter["colors"]
         ]
 
-        return filter
+        return color_filter
 
     def get_hsv_img(self, img: np.ndarray) -> np.ndarray:
         """
@@ -236,7 +236,7 @@ class HSVClassifier(BaseClassifier):
         """
         return cv2.cvtColor(img.copy(), cv2.COLOR_BGR2HSV)
 
-    def apply_filter(self, img: np.ndarray, filter: dict) -> np.ndarray:
+    def apply_filter(self, img: np.ndarray, color_filter: dict) -> np.ndarray:
         """
         Apply filter to image
 
@@ -244,7 +244,7 @@ class HSVClassifier(BaseClassifier):
         ----------
         img : np.ndarray
             Image to apply filter to
-        filter : dict
+        color_filter : dict
             Filter to apply
 
         Returns
@@ -253,7 +253,7 @@ class HSVClassifier(BaseClassifier):
             Filtered image
         """
         img_hsv = self.get_hsv_img(img)
-        mask = cv2.inRange(img_hsv, filter["lower_hsv"], filter["upper_hsv"])
+        mask = cv2.inRange(img_hsv, color_filter["lower_hsv"], color_filter["upper_hsv"])
         return cv2.bitwise_and(img, img, mask=mask)
 
     def crop_img_for_jersey(self, img: np.ndarray) -> np.ndarray:
@@ -312,7 +312,7 @@ class HSVClassifier(BaseClassifier):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return cv2.countNonZero(img)
 
-    def crop_filter_and_blur_img(self, img: np.ndarray, filter: dict) -> np.ndarray:
+    def crop_filter_and_blur_img(self, img: np.ndarray, color_filter: dict) -> np.ndarray:
         """
         Crops image to get only the jersey part. Filters the colors and adds a median blur.
 
@@ -320,7 +320,7 @@ class HSVClassifier(BaseClassifier):
         ----------
         img : np.ndarray
             Image to crop
-        filter : dict
+        color_filter : dict
             Filter to apply
 
         Returns
@@ -330,12 +330,12 @@ class HSVClassifier(BaseClassifier):
         """
         transformed_img = img.copy()
         transformed_img = self.crop_img_for_jersey(transformed_img)
-        transformed_img = self.apply_filter(transformed_img, filter)
+        transformed_img = self.apply_filter(transformed_img, color_filter)
         transformed_img = self.add_median_blur(transformed_img)
         return transformed_img
 
     def add_non_black_pixels_count_in_filter(
-        self, img: np.ndarray, filter: dict
+        self, img: np.ndarray, color_filter: dict
     ) -> dict:
         """
         Applies filter to image and saves the number of non black pixels in the filter.
@@ -344,7 +344,7 @@ class HSVClassifier(BaseClassifier):
         ----------
         img : np.ndarray
             Image to apply filter to
-        filter : dict
+        color_filter : dict
             Filter to apply to img
 
         Returns
@@ -352,9 +352,9 @@ class HSVClassifier(BaseClassifier):
         dict
             Filter with non black pixels count
         """
-        transformed_img = self.crop_filter_and_blur_img(img, filter)
-        filter["non_black_pixels_count"] = self.non_black_pixels_count(transformed_img)
-        return filter
+        transformed_img = self.crop_filter_and_blur_img(img, color_filter)
+        color_filter["non_black_pixels_count"] = self.non_black_pixels_count(transformed_img)
+        return color_filter
 
     def predict_img(self, img: np.ndarray) -> str:
         """
@@ -375,12 +375,12 @@ class HSVClassifier(BaseClassifier):
 
         filters = copy.deepcopy(self.filters)
 
-        for i, filter in enumerate(filters):
-            for color in filter["colors"]:
+        for i, color_filter in enumerate(filters):
+            for color in color_filter["colors"]:
                 color = self.add_non_black_pixels_count_in_filter(img, color)
-                if "non_black_pixels_count" not in filter:
-                    filter["non_black_pixels_count"] = 0
-                filter["non_black_pixels_count"] += color["non_black_pixels_count"]
+                if "non_black_pixels_count" not in color_filter:
+                    color_filter["non_black_pixels_count"] = 0
+                color_filter["non_black_pixels_count"] += color["non_black_pixels_count"]
 
         max_non_black_pixels_filter = max(
             filters, key=lambda x: x["non_black_pixels_count"]
@@ -388,14 +388,14 @@ class HSVClassifier(BaseClassifier):
 
         return max_non_black_pixels_filter["name"]
 
-    def predict(self, input_image: List[np.ndarray]) -> str:
+    def predict(self, input_image: Union[np.ndarray, List[np.ndarray]]) -> str:
         """
-        Predicts the name of the team from the input image.
+        Predicts the name of the team from the input image or a list of input images.
 
         Parameters
         ----------
-        input_image : List[np.ndarray]
-            Image to predict
+        input_image : Union[np.ndarray, List[np.ndarray]]
+            Image or list of images to predict
 
         Returns
         -------
@@ -403,14 +403,13 @@ class HSVClassifier(BaseClassifier):
             Predicted team name
         """
 
-        if type(input_image) != list:
-            input_image = [input_image]
+        if isinstance(input_image, list):
+            predictions = [self.predict_img(img) for img in input_image]
+            return ', '.join(predictions)
+        else:
+            return self.predict_img(input_image)
 
-        return [self.predict_img(img) for img in input_image]
-
-    def transform_image_for_every_color(
-        self, img: np.ndarray, colors: List[dict] = None
-    ) -> List[dict]:
+    def transform_image_for_every_color(self, img: np.ndarray, colors: List[dict] = None) -> List[dict]:
         """
         Transforms image for every color in every filter.
 
@@ -428,53 +427,63 @@ class HSVClassifier(BaseClassifier):
 
             [
                 {
-                    "red": image,
+                    "name": "red",
+                    "image": transformed_image,
+                    "original": img,
                 },
                 {
-                    "blue": image,
-                }
+                    "name": "blue",
+                    "image": transformed_image,
+                    "original": img,
+                },
+                # ... other colors ...
             ]
         """
-        transformed_imgs = {}
+        transformed_images = []
 
-        colors_to_transform = all
+        colors_to_transform = all_colors
         if colors:
             colors_to_transform = colors
 
         for color in colors_to_transform:
-            transformed_imgs[color["name"]] = self.crop_filter_and_blur_img(img, color)
-        return transformed_imgs
+            transformed_image = self.crop_filter_and_blur_img(img, color)
+            transformed_images.append({
+                "name": color["name"],
+                "image": transformed_image,
+                "original": img,
+            })
 
-    def plot_every_color_output(
-        self, img: np.ndarray, colors: List[dict] = None, save_img_path: str = None
-    ):
+        return transformed_images
+
+    def plot_every_color_output(self, img: np.ndarray, colors: List[dict] = None, save_img_path: str = None) -> None:
         """
-        Plots every color output of the image.
+            Plots every color output of the image.
 
-        Parameters
-        ----------
-        img : np.ndarray
-            Image to plot
-        colors : List[dict], optional
-            List of colors to plot, by default None
-        save_img_path : str, optional
-            Path to save image to, by default None
-        """
-        transformed_imgs = self.transform_image_for_every_color(img, colors)
-        transformed_imgs["original"] = img
+            Parameters
+            ----------
+            img : np.ndarray
+                Image to plot
+            colors : List[dict], optional
+                List of colors to plot, by default None
+            save_img_path : str, optional
+                Path to save image to, by default None
+            """
+        transformed_images = self.transform_image_for_every_color(img, colors)
+        transformed_images[0]["original"] = img
 
-        n = len(transformed_imgs)
+        n = len(transformed_images)
 
         fig, axs = plt.subplots(1, n, figsize=(n * 5, 5))
 
         fig.suptitle("Every color output")
-        for i, (key, value) in enumerate(transformed_imgs.items()):
-            value = cv2.cvtColor(value, cv2.COLOR_BGR2RGB)
+        for i, color_info in enumerate(transformed_images):
+            key = color_info["name"]
+            value = cv2.cvtColor(color_info["image"], cv2.COLOR_BGR2RGB)
             axs[i].imshow(value)
             if key == "original":
                 axs[i].set_title(f"{key}")
             else:
-                gray_img = cv2.cvtColor(value, cv2.COLOR_BGR2GRAY)
+                gray_img = cv2.cvtColor(color_info["image"], cv2.COLOR_BGR2GRAY)
                 power = cv2.countNonZero(gray_img)
                 axs[i].set_title(f"{key}: {power}")
         plt.show()

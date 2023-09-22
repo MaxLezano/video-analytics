@@ -2,7 +2,7 @@ from typing import List, Union
 
 import cv2
 import numpy as np
-import PIL
+from PIL import Image
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -81,7 +81,7 @@ class NNClassifier(BaseClassifier):
 
         pil_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        pil_image = PIL.Image.fromarray(pil_image)
+        pil_image = Image.fromarray(pil_image)
 
         pil_image = pil_image.resize((300, 300))
 
@@ -120,41 +120,36 @@ class NNClassifier(BaseClassifier):
 
         if self.classes:
             # check if index is in range
-            if index < len(self.classes) and index >= 0:
+            if len(self.classes) > index >= 0:
                 return self.classes[index]
             else:
                 return "Unknown"
 
         return index
 
-    def predict(self, input_image: List[np.ndarray]) -> List[Union[str, int]]:
+    def predict(self, input_images: List[np.ndarray]) -> List[Union[str, int]]:
         """
-
-        Predict list of images and return list of predictions
+        Predict a list of images and return a list of predictions.
 
         Parameters
         ----------
-        input_image : List[np.ndarray]
-            List of images to predict
+        input_images : List[np.ndarray]
+            List of images to predict.
 
         Returns
         -------
         List[Union[str, int]]
-            List of predictions
+            List of predictions.
         """
 
-        if not isinstance(input_image, list):
-            input_image = [input_image]
-
-        tensors = [
-            self.convert_image_to_desired_tensor(input_image)
-            for input_image in input_image
-        ]
+        predictions = []
 
         with torch.no_grad():
-
             self.model.eval()
 
-            result = [self.forward_image(tensor) for tensor in tensors]
+            for input_image in input_images:
+                tensor = self.convert_image_to_desired_tensor(input_image)
+                result = self.forward_image(tensor)
+                predictions.append(result)
 
-            return result
+        return predictions

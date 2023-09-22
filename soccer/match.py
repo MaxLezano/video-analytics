@@ -1,8 +1,7 @@
 from typing import List
 
-import cv2
 import numpy as np
-import PIL
+from PIL import Image, ImageDraw
 
 from soccer.ball import Ball
 from soccer.draw import Draw
@@ -35,7 +34,7 @@ class Match:
         self.closest_player = None
         self.ball = None
         # Amount of consecutive frames new team has to have the ball in order to change possession
-        self.possesion_counter_threshold = 20
+        self.possession_counter_threshold = 20
         # Distance in pixels from player to ball in order to consider a player has the ball
         self.ball_distance_threshold = 45
         self.fps = fps
@@ -81,7 +80,7 @@ class Match:
         self.possession_counter += 1
 
         if (
-            self.possession_counter >= self.possesion_counter_threshold
+            self.possession_counter >= self.possession_counter_threshold
             and closest_player.team is not None
         ):
             self.change_team(self.current_team)
@@ -126,7 +125,8 @@ class Match:
 
     @property
     def time_possessions(self) -> str:
-        return f"{self.home.name}: {self.home.get_time_possession(self.fps)} | {self.away.name}: {self.away.get_time_possession(self.fps)}"
+        return f"""{self.home.name}: {self.home.get_time_possession(self.fps)}
+                   {self.away.name}: {self.away.get_time_possession(self.fps)}"""
 
     @property
     def passes(self) -> List["Pass"]:
@@ -135,20 +135,20 @@ class Match:
 
         return home_passes + away_passes
 
-    def possession_bar(self, frame: PIL.Image.Image, origin: tuple) -> PIL.Image.Image:
+    def possession_bar(self, frame: Image.Image, origin: tuple) -> Image.Image:
         """
         Draw possession bar
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
         origin : tuple
             Origin (x, y)
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with possession bar
         """
 
@@ -211,7 +211,7 @@ class Match:
 
             frame = Draw.text_in_middle_rectangle(
                 img=frame,
-                origin=right_rectangle[0],
+                origin=tuple(right_rectangle[0]),
                 width=right_rectangle[1][0] - right_rectangle[0][0],
                 height=right_rectangle[1][1] - right_rectangle[0][1],
                 text=away_text,
@@ -222,18 +222,18 @@ class Match:
 
     def draw_counter_rectangle(
         self,
-        frame: PIL.Image.Image,
+        frame: Image.Image,
         ratio: float,
         left_rectangle: tuple,
         left_color: tuple,
         right_rectangle: tuple,
         right_color: tuple,
-    ) -> PIL.Image.Image:
+    ) -> Image.Image:
         """Draw counter rectangle for both teams
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Video frame
         ratio : float
             counter proportion
@@ -248,7 +248,7 @@ class Match:
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Drawed video frame
         """
 
@@ -292,20 +292,20 @@ class Match:
 
         return frame
 
-    def passes_bar(self, frame: PIL.Image.Image, origin: tuple) -> PIL.Image.Image:
+    def passes_bar(self, frame: Image.Image, origin: tuple) -> Image.Image:
         """
         Draw passes bar
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
         origin : tuple
             Origin (x, y)
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with passes bar
         """
 
@@ -377,7 +377,7 @@ class Match:
 
             frame = Draw.text_in_middle_rectangle(
                 img=frame,
-                origin=right_rectangle[0],
+                origin=tuple(right_rectangle[0]),
                 width=right_rectangle[1][0] - right_rectangle[0][0],
                 height=right_rectangle[1][1] - right_rectangle[0][1],
                 text=away_text,
@@ -386,69 +386,67 @@ class Match:
 
         return frame
 
-    def get_possession_background(
-        self,
-    ) -> PIL.Image.Image:
+    def get_possession_background(self,) -> Image.Image:
         """
         Get possession counter background
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Counter background
         """
 
-        counter = PIL.Image.open("./images/possession_board.png").convert("RGBA")
+        counter = Image.open("./images/possession_board.png").convert("RGBA")
         counter = Draw.add_alpha(counter, 210)
-        counter = np.array(counter)
+        counter = np.array(counter)  # type: ignore
         red, green, blue, alpha = counter.T
         counter = np.array([blue, green, red, alpha])
         counter = counter.transpose()
-        counter = PIL.Image.fromarray(counter)
+        counter = Image.fromarray(counter)
         counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
         return counter
 
-    def get_passes_background(self) -> PIL.Image.Image:
+    def get_passes_background(self) -> Image.Image:
         """
         Get passes counter background
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Counter background
         """
 
-        counter = PIL.Image.open("./images/passes_board.png").convert("RGBA")
+        counter = Image.open("./images/passes_board.png").convert("RGBA")
         counter = Draw.add_alpha(counter, 210)
-        counter = np.array(counter)
+        counter = np.array(counter)  # type: ignore
         red, green, blue, alpha = counter.T
         counter = np.array([blue, green, red, alpha])
         counter = counter.transpose()
-        counter = PIL.Image.fromarray(counter)
+        counter = Image.fromarray(counter)
         counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
         return counter
 
     def draw_counter_background(
         self,
-        frame: PIL.Image.Image,
+        frame: Image.Image,
         origin: tuple,
-        counter_background: PIL.Image.Image,
-    ) -> PIL.Image.Image:
+        counter_background: Image.Image,
+    ) -> Image.Image:
         """
         Draw counter background
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
         origin : tuple
             Origin (x, y)
-        counter_background : PIL.Image.Image
+        counter_background : Image.Image
             Counter background
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with counter background
         """
         frame.paste(counter_background, origin, counter_background)
@@ -456,7 +454,7 @@ class Match:
 
     def draw_counter(
         self,
-        frame: PIL.Image.Image,
+        frame: Image.Image,
         text: str,
         counter_text: str,
         origin: tuple,
@@ -464,13 +462,13 @@ class Match:
         text_color: tuple,
         height: int = 27,
         width: int = 120,
-    ) -> PIL.Image.Image:
+    ) -> Image.Image:
         """
         Draw counter
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
         text : str
             Text in left-side of counter
@@ -489,7 +487,7 @@ class Match:
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with counter
         """
 
@@ -529,7 +527,7 @@ class Match:
             img=frame,
             origin=team_rectangle[0],
             height=height,
-            width=team_width,
+            width=int(team_width),
             text=text,
             color=text_color,
         )
@@ -538,36 +536,36 @@ class Match:
             img=frame,
             origin=time_rectangle[0],
             height=height,
-            width=time_width,
+            width=int(time_width),
             text=counter_text,
             color="black",
         )
 
         return frame
 
-    def draw_debug(self, frame: PIL.Image.Image) -> PIL.Image.Image:
+    def draw_debug(self, frame: Image.Image) -> None:
         """Draw line from closest player feet to ball
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Video frame
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Drawed video frame
         """
         if self.closest_player and self.ball:
             closest_foot = self.closest_player.closest_foot_to_ball(self.ball)
 
             color = (0, 0, 0)
-            # Change line color if its greater than threshold
+            # Change line color if it's greater than threshold
             distance = self.closest_player.distance_to_ball(self.ball)
             if distance > self.ball_distance_threshold:
                 color = (255, 255, 255)
 
-            draw = PIL.ImageDraw.Draw(frame)
+            draw = ImageDraw.Draw(frame)
             draw.line(
                 [
                     tuple(closest_foot),
@@ -579,30 +577,30 @@ class Match:
 
     def draw_possession_counter(
         self,
-        frame: PIL.Image.Image,
-        counter_background: PIL.Image.Image,
+        frame: Image.Image,
+        counter_background: Image.Image,
         debug: bool = False,
-    ) -> PIL.Image.Image:
+    ) -> Image.Image:
         """
 
         Draw elements of the possession in frame
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
-        counter_background : PIL.Image.Image
+        counter_background : Image.Image
             Counter background
         debug : bool, optional
             Whether to draw extra debug information, by default False
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with elements of the match
         """
 
-        # get width of PIL.Image
+        # get width of Image
         frame_width = frame.size[0]
         counter_origin = (frame_width - 540, 40)
 
@@ -646,30 +644,30 @@ class Match:
 
     def draw_passes_counter(
         self,
-        frame: PIL.Image.Image,
-        counter_background: PIL.Image.Image,
+        frame: Image.Image,
+        counter_background: Image.Image,
         debug: bool = False,
-    ) -> PIL.Image.Image:
+    ) -> Image.Image:
         """
 
         Draw elements of the passes in frame
 
         Parameters
         ----------
-        frame : PIL.Image.Image
+        frame : Image.Image
             Frame
-        counter_background : PIL.Image.Image
+        counter_background : Image.Image
             Counter background
         debug : bool, optional
             Whether to draw extra debug information, by default False
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Frame with elements of the match
         """
 
-        # get width of PIL.Image
+        # get width of Image
         frame_width = frame.size[0]
         counter_origin = (frame_width - 540, 40)
 

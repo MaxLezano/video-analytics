@@ -49,7 +49,7 @@ class InertiaClassifier:
             detection.data["classification"]
         ]
 
-    def add_new_clasification_to_id(self, detection: Detection):
+    def add_new_classification_to_id(self, detection: Detection):
         """
         Add a new classification to the existing id.
 
@@ -108,11 +108,11 @@ class InertiaClassifier:
             self.add_first_classification_to_id(detection)
 
         elif len(self.classifications_per_id[detection.data["id"]]) < self.inertia:
-            self.add_new_clasification_to_id(detection)
+            self.add_new_classification_to_id(detection)
 
         elif len(self.classifications_per_id[detection.data["id"]]) == self.inertia:
             self.classifications_per_id[detection.data["id"]].pop(0)
-            self.add_new_clasification_to_id(detection)
+            self.add_new_classification_to_id(detection)
 
     def add_first_n_classification(self, detection: Detection):
         """
@@ -128,9 +128,9 @@ class InertiaClassifier:
             self.add_first_classification_to_id(detection)
 
         elif len(self.classifications_per_id[detection.data["id"]]) < self.inertia:
-            self.add_new_clasification_to_id(detection)
+            self.add_new_classification_to_id(detection)
 
-    def add_new_clasifications(self, detections: List[Detection]):
+    def add_new_classifications(self, detections: List[Detection]):
         """
         Load internal dictionary with new classifications.
 
@@ -191,7 +191,7 @@ class InertiaClassifier:
             Detections with the classification set.
         """
 
-        # Filter detections for clasificiations
+        # Filter detections for classifications
         detections_for_classification = [
             detection for detection in detections if self.should_classify(detection)
         ]
@@ -202,7 +202,7 @@ class InertiaClassifier:
         )
 
         # Add detections to internal dictionary
-        self.add_new_clasifications(detections_classified)
+        self.add_new_classifications(detections_classified)
 
         # Set detections classification
         detections = self.set_detections_classification(detections)

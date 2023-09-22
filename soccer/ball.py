@@ -1,12 +1,12 @@
-import cv2
 import norfair
 import numpy as np
+from PIL import Image
 
 from soccer.draw import Draw
 
 
 class Ball:
-    def __init__(self, detection: norfair.Detection):
+    def __init__(self, detection: norfair.Detection = None) -> None:
         """
         Initialize Ball
 
@@ -18,7 +18,7 @@ class Ball:
         self.detection = detection
         self.color = None
 
-    def set_color(self, match: "Match"):
+    def set_color(self, match: ""):
         """
         Sets the color of the ball to the team color with the ball possession in the match.
 
@@ -55,7 +55,7 @@ class Ball:
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
 
-        return (center_x, center_y)
+        return center_x, center_y
 
     @property
     def center(self) -> tuple:
@@ -68,7 +68,7 @@ class Ball:
             Center of the ball (x, y)
         """
         if self.detection is None:
-            return None
+            return ()
 
         center = self.get_center(self.detection.points)
         round_center = np.round_(center)
@@ -86,14 +86,14 @@ class Ball:
             Center of the ball (x, y)
         """
         if self.detection is None:
-            return None
+            return ()
 
         center = self.get_center(self.detection.absolute_points)
         round_center = np.round_(center)
 
         return round_center
 
-    def draw(self, frame: np.ndarray) -> np.ndarray:
+    def draw(self, frame: Image.Image) -> Image.Image:
         """
         Draw the ball on the frame
 

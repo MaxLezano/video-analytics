@@ -9,9 +9,7 @@ from inference import Converter, YoloV5
 from soccer import Ball, Match
 
 
-def get_ball_detections(
-    ball_detector: YoloV5, frame: np.ndarray
-) -> List[norfair.Detection]:
+def get_ball_detections(ball_detector: YoloV5, frame: List[np.ndarray]) -> List[norfair.Detection]:
     """
     Uses custom Yolov5 detector in order
     to get the predictions of the ball and converts it to
@@ -34,9 +32,7 @@ def get_ball_detections(
     return Converter.DataFrame_to_Detections(ball_df)
 
 
-def get_player_detections(
-    person_detector: YoloV5, frame: np.ndarray
-) -> List[norfair.Detection]:
+def get_player_detections(person_detector: YoloV5, frame: List[np.ndarray]) -> List[norfair.Detection]:
     """
     Uses YoloV5 Detector in order to detect the players
     in a match and filter out the detections that are not players
@@ -113,11 +109,7 @@ def apply_mask(img: np.ndarray, mask: np.ndarray) -> np.ndarray:
     return masked_img
 
 
-def update_motion_estimator(
-    motion_estimator: MotionEstimator,
-    detections: List[Detection],
-    frame: np.ndarray,
-) -> "CoordinatesTransformation":
+def update_motion_estimator(motion_estimator: MotionEstimator, detections: List[Detection], frame: np.ndarray) -> "":
     """
 
     Update coordinate transformations every frame

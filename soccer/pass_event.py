@@ -1,7 +1,7 @@
 from typing import Iterable, List
 
 import numpy as np
-import PIL
+from PIL import Image
 
 from soccer.ball import Ball
 from soccer.draw import AbsolutePath, PathPoint
@@ -19,21 +19,19 @@ class Pass:
         self.team = team
         self.draw_abs = AbsolutePath()
 
-    def draw(
-        self, img: PIL.Image.Image, coord_transformations: "CoordinatesTransformation"
-    ) -> PIL.Image.Image:
+    def draw(self, img: Image.Image, coord_transformations: "") -> Image.Image:
         """Draw a pass
 
         Parameters
         ----------
-        img : PIL.Image.Image
+        img : Image.Image
             Video frame
         coord_transformations : CoordinatesTransformation
             coordinates transformation
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             frame with the new pass
         """
         rel_point_start = PathPoint.from_abs_bbox(
@@ -66,16 +64,12 @@ class Pass:
         return img
 
     @staticmethod
-    def draw_pass_list(
-        img: PIL.Image.Image,
-        passes: List["Pass"],
-        coord_transformations: "CoordinatesTransformation",
-    ) -> PIL.Image.Image:
+    def draw_pass_list(img: Image.Image, passes: List["Pass"], coord_transformations: "") -> Image.Image:
         """Draw all the passes
 
         Parameters
         ----------
-        img : PIL.Image.Image
+        img : Image.Image
             Video frame
         passes : List[Pass]
             Passes list to draw
@@ -84,7 +78,7 @@ class Pass:
 
         Returns
         -------
-        PIL.Image.Image
+        Image.Image
             Drawed frame
         """
         for pass_ in passes:
@@ -92,9 +86,7 @@ class Pass:
 
         return img
 
-    def get_relative_coordinates(
-        self, coord_transformations: "CoordinatesTransformation"
-    ) -> tuple:
+    def get_relative_coordinates(self, coord_transformations: "") -> tuple:
         """
         Print the relative coordinates of a pass
 
@@ -111,7 +103,7 @@ class Pass:
         relative_start = coord_transformations.abs_to_rel(self.start_ball_bbox)
         relative_end = coord_transformations.abs_to_rel(self.end_ball_bbox)
 
-        return (relative_start, relative_end)
+        return relative_start, relative_end
 
     def get_center(self, points: np.array) -> tuple:
         """
@@ -133,7 +125,7 @@ class Pass:
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
 
-        return (center_x, center_y)
+        return center_x, center_y
 
     def round_iterable(self, iterable: Iterable) -> Iterable:
         """
@@ -179,7 +171,7 @@ class Pass:
 
         return f"Start: {relative_start_round}, End: {relative_end_round}, Team: {team_name}"
 
-    def tostring(self, coord_transformations: "CoordinatesTransformation") -> str:
+    def tostring(self, coord_transformations: "") -> str:
         """
         Get a string with the relative coordinates of this pass
 
@@ -284,7 +276,7 @@ class PassEvent:
         start_pass_bbox = [start_pass, start_pass]
 
         new_pass = Pass(
-            start_ball_bbox=start_pass_bbox,
+            start_ball_bbox=np.array(start_pass_bbox),
             end_ball_bbox=end_pass,
             team=team,
         )
@@ -293,10 +285,10 @@ class PassEvent:
 
     def process_pass(self) -> None:
         """
-        Check if a new pass was generated and in the positive case save the new pass into de right team
+        Check if a new pass was generated and, in the positive case, save the new pass into the right team
         """
         if self.player_with_ball_counter >= self.player_with_ball_threshold:
-            # init the last player with ball
+            # Init the last player with ball
             if self.last_player_with_ball is None:
                 self.last_player_with_ball = self.init_player_with_ball
 
@@ -306,22 +298,20 @@ class PassEvent:
             )
 
             if valid_pass:
-                # Generate new pass
+                # Generate a new pass
                 team = self.closest_player.team
-                start_pass = self.last_player_with_ball.closest_foot_to_ball_abs(
-                    self.ball
-                )
-                end_pass = self.ball.detection.absolute_points
+                if team is not None:  # Check if the team is not None
+                    start_pass = self.last_player_with_ball.closest_foot_to_ball_abs(
+                        self.ball
+                    )
+                    end_pass = self.ball.detection.absolute_points
 
-                new_pass = self.generate_pass(
-                    team=team, start_pass=start_pass, end_pass=end_pass
-                )
-                team.passes.append(new_pass)
+                    new_pass = self.generate_pass(
+                        team=team, start_pass=start_pass, end_pass=end_pass
+                    )
+                    team.passes.append(new_pass)
             else:
-                if (
-                    self.player_with_ball_counter
-                    < self.player_with_ball_threshold_dif_team
-                ):
+                if self.player_with_ball_counter < self.player_with_ball_threshold_dif_team:
                     return
 
             self.last_player_with_ball = self.closest_player

@@ -52,4 +52,4 @@ black = {
     "upper_hsv": (179, 255, 49),
 }
 
-all = [white, red, orange, yellow, green, sky_blue, blue, blueish_red, black]
+all_colors = [white, red, orange, yellow, green, sky_blue, blue, blueish_red, black]
