@@ -52,4 +52,12 @@ black = {
     "upper_hsv": (179, 255, 49),
 }
 
-all_colors = [white, red, orange, yellow, green, sky_blue, blue, blueish_red, black]
+pink = {
+    "name": "pink",
+    "lower_hsv": (148, 44, 90),
+    "upper_hsv": (179, 255, 255),
+}
+
+all_colors = [white, red, orange, yellow, green, sky_blue, blue, blueish_red, black, pink]
+
+# TODO: HSV colors can be generated automatically, based on the colors provided in main.py

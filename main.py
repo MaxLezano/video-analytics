@@ -57,21 +57,21 @@ hsv_classifier = HSVClassifier(filters=filters)
 classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
 
 # Teams and Match
-chelsea = Team(  # TODO: same error if you change the name to "Other Team"
-    name="Chelsea",  # TODO: try to change the name to "Red Star" for any reason it doesn't work
-    abbreviation="ZVE",
-    color=(51, 51, 255),
-    board_color=(0, 0, 255),
-    text_color=(255, 255, 255),
+home_team = Team(
+    name="Gimnasia (Jujuy)",
+    abbreviation="GEJ",
+    color=(192, 118, 255),
+    board_color=(192, 118, 255),
+    text_color=(0, 0, 0),
 )
-man_city = Team(  # TODO: same error if you change the name to "Other Team"
-    name="Man City",  # TODO: try to change the name to "Manchester City" for any reason it doesn't work
-    abbreviation="MCI",
-    color=(240, 230, 188)
+visitor_team = Team(
+    name="Chacarita",
+    abbreviation="CHA",
+    color=(255, 255, 255)
 )
-teams = [chelsea, man_city]
-match = Match(home=man_city, away=chelsea, fps=fps)
-match.team_possession = man_city
+teams = [home_team, visitor_team]
+match = Match(home=home_team, away=visitor_team, fps=fps)
+match.team_possession = home_team
 
 # Tracking
 player_tracker = Tracker(
@@ -147,9 +147,10 @@ for i, frame in enumerate(video):
             color=match.team_possession.color,
         )
 
-        frame = match.draw_possession_counter(
-            frame, counter_background=possession_background, debug=False
-        )
+        # TODO: uncomment this if you want to draw the possession counter
+        # frame = match.draw_possession_counter(
+        #     frame, counter_background=possession_background, debug=False
+        # )
 
         if ball:
             frame = ball.draw(frame)
@@ -161,9 +162,10 @@ for i, frame in enumerate(video):
             img=frame, passes=pass_list, coord_transformations=coord_transformations
         )
 
-        frame = match.draw_passes_counter(
-            frame, counter_background=passes_background, debug=False
-        )
+        # TODO: uncomment this if you want to draw the passes counter
+        # frame = match.draw_passes_counter(
+        #     frame, counter_background=passes_background, debug=False
+        # )
 
     frame = np.array(frame)
 
