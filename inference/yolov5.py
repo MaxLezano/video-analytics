@@ -24,7 +24,7 @@ class YoloV5(BaseDetector):
         print(self.device)
 
         if model_path:
-            self.model = torch.hub.load("ultralytics/yolov5", "custom", path=model_path)
+            self.model = torch.hub.load("ultralytics/yolov5", "custom", path=model_path, force_reload=True)
         else:
             self.model = torch.hub.load(
                 "ultralytics/yolov5", "yolov5x", pretrained=True
