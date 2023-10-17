@@ -21,38 +21,16 @@ from soccer.draw import AbsolutePath
 from soccer.pass_event import Pass
 
 
-def run():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--video",
-        default='videos/example.mp4',
-        type=str,
-        help="Path to the input video",
-    )
-    parser.add_argument(
-        "--model", default='models/last.pt', type=str, help="Path to the model"
-    )
-    parser.add_argument(
-        "--passes",
-        action="store_true",
-        help="Enable pass counter",
-    )
-    parser.add_argument(
-        "--possession",
-        action="store_true",
-        help="Enable possession detection",
-    )
-    args = parser.parse_args()
-
-    args.passes = False  # Switch to True for passes
-    args.possession = True  # Switch to False for passes
-
-    video = Video(input_path=args.video)
+def run(video_path: str = "videos/example.mp4",
+        model_path: str = "models/ball.pt",
+        passes: bool = False,
+        possession: bool = False):
+    video = Video(input_path=video_path)
     fps = video.video_capture.get(cv2.CAP_PROP_FPS)
 
     # Object Detectors
-    # player_detector = YoloV5()
-    ball_detector = YoloV5(model_path=args.model)
+    player_detector = YoloV5()
+    ball_detector = YoloV5(model_path=model_path)
 
     # HSV Classifier
     hsv_classifier = HSVClassifier(filters=filters)
@@ -60,6 +38,7 @@ def run():
     # Add inertia to classifier
     classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
 
+    # TODO: Get the teams automatically (maybe from a csv or config file)
     # Teams and Match
     home_team = Team(
         name="Gimnasia (Jujuy)",
@@ -137,45 +116,45 @@ def run():
         match.update([], ball)  # TODO: add player parameter
 
         # Draw
-        frame = Image.fromarray(frame)
+        pil_frame = Image.fromarray(frame)
 
-        if args.possession:
-            # frame = Player.draw_players(
-            #     players=players, frame=frame, confidence=False, id=True
+        if possession:
+            # pil_frame = Player.draw_players(
+            #     players=players, frame=pil_frame, confidence=False, id=True
             # )
 
-            frame = path.draw(
-                img=frame,
+            pil_frame = path.draw(
+                img=pil_frame,
                 detection=ball.detection,
                 coord_transformations=coord_transformations,
                 color=match.team_possession.color,
             )
 
             # TODO: uncomment this if you want to draw the possession counter
-            # frame = match.draw_possession_counter(
-            #     frame, counter_background=possession_background, debug=False
+            # pil_frame = match.draw_possession_counter(
+            #     pil_frame, counter_background=possession_background, debug=False
             # )
 
             if ball:
-                frame = ball.draw(frame)
+                pil_frame = ball.draw(pil_frame)
 
-        if args.passes:
+        if passes:
             pass_list = match.passes
 
-            frame = Pass.draw_pass_list(
-                img=frame, passes=pass_list, coord_transformations=coord_transformations
+            pil_frame = Pass.draw_pass_list(
+                img=pil_frame, passes=pass_list, coord_transformations=coord_transformations
             )
 
             # TODO: uncomment this if you want to draw the passes counter
-            # frame = match.draw_passes_counter(
-            #     frame, counter_background=passes_background, debug=False
+            # pil_frame = match.draw_passes_counter(
+            #     pil_frame, counter_background=passes_background, debug=False
             # )
 
-        frame = np.array(frame)
+        frame = np.array(pil_frame)
 
         # Write video
         video.write(frame)
 
 
-if __name__ == '__main__':
-    run()
+if __name__ == "__main__":
+    run(video_path="videos/prueba.mp4", model_path="models/yolov5x.pt", passes=True, possession=True)
