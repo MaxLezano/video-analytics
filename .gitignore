@@ -139,6 +139,6 @@ dmypy.json
 
 .videos/
 .models/
-yolov5x.pt
+models/yolov5x.pt
 
 .idea/
