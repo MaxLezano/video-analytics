@@ -8,7 +8,7 @@ from norfair import Tracker, Video
 from norfair.camera_motion import MotionEstimator
 from norfair.distances import mean_euclidean
 
-from inference import Converter, HSVClassifier, InertiaClassifier, YoloV5
+from inference import Converter, HSVClassifier, InertiaClassifier, Yolo
 from inference.filters import filters
 from main_utils import (
     get_ball_detections,
@@ -22,15 +22,15 @@ from soccer.pass_event import Pass
 
 
 def run(video_path: str = "videos/example.mp4",
-        model_path: str = "models/ball.pt",
+        ball_model_path: str = "models/ball.pt",
         passes: bool = False,
         possession: bool = False):
     video = Video(input_path=video_path)
     fps = video.video_capture.get(cv2.CAP_PROP_FPS)
 
     # Object Detectors
-    player_detector = YoloV5()
-    ball_detector = YoloV5(model_path=model_path)
+    player_detector = Yolo()
+    ball_detector = Yolo(model_path=ball_model_path)
 
     # HSV Classifier
     hsv_classifier = HSVClassifier(filters=filters)
@@ -113,7 +113,8 @@ def run(video_path: str = "videos/example.mp4",
         # Match update
         ball = get_main_ball(ball_detections)
         # players = Player.from_detections(detections=players_detections, teams=teams)
-        match.update([], ball)  # TODO: add player parameter
+        # match.update(players, ball)
+        match.update([], ball)
 
         # Draw
         pil_frame = Image.fromarray(frame)
@@ -157,4 +158,4 @@ def run(video_path: str = "videos/example.mp4",
 
 
 if __name__ == "__main__":
-    run(video_path="videos/prueba.mp4", model_path="models/yolov5x.pt", passes=True, possession=True)
+    run(video_path="videos/prueba.mp4", ball_model_path="models/yolov5x.pt", passes=True, possession=True)

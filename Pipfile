@@ -17,6 +17,7 @@ pyyaml = "*"
 matplotlib = "*"
 numpy = "*"
 pillow = "*"
+ultralytics = "*"
 
 [dev-packages]
 
