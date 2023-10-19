@@ -5,20 +5,20 @@ import numpy as np
 from norfair import Detection
 from norfair.camera_motion import MotionEstimator
 
-from inference import Converter, YoloV5
+from inference import Converter, Yolo
 from soccer import Ball, Match
 
 
-def get_ball_detections(ball_detector: YoloV5, frame: List[np.ndarray]) -> List[norfair.Detection]:
+def get_ball_detections(ball_detector: Yolo, frame: List[np.ndarray]) -> List[norfair.Detection]:
     """
-    Uses custom Yolov5 detector in order
+    Uses custom Yolo detector in order
     to get the predictions of the ball and converts it to
     Norfair.Detection list.
 
     Parameters
     ----------
-    ball_detector : YoloV5
-        YoloV5 detector for balls
+    ball_detector : Yolo
+        Yolo detector for balls
     frame : np.ndarray
         Frame to get the ball detections from
 
@@ -32,16 +32,16 @@ def get_ball_detections(ball_detector: YoloV5, frame: List[np.ndarray]) -> List[
     return Converter.DataFrame_to_Detections(ball_df)
 
 
-def get_player_detections(person_detector: YoloV5, frame: List[np.ndarray]) -> List[norfair.Detection]:
+def get_player_detections(person_detector: Yolo, frame: List[np.ndarray]) -> List[norfair.Detection]:
     """
-    Uses YoloV5 Detector in order to detect the players
+    Uses Yolo Detector in order to detect the players
     in a match and filter out the detections that are not players
     and have confidence lower than 0.35.
 
     Parameters
     ----------
-    person_detector : YoloV5
-        YoloV5 detector
+    person_detector : Yolo
+        Yolo detector
     frame : np.ndarray
         _description_
 
@@ -80,7 +80,7 @@ def create_mask(frame: np.ndarray, detections: List[norfair.Detection]) -> np.nd
         mask = np.ones(frame.shape[:2], dtype=frame.dtype)
     else:
         detections_df = Converter.Detections_to_DataFrame(detections)
-        mask = YoloV5.generate_predictions_mask(detections_df, frame, margin=40)
+        mask = Yolo.generate_predictions_mask(detections_df, frame, margin=40)
 
     # remove goal counter
     mask[69:200, 160:510] = 0
