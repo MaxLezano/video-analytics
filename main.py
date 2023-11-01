@@ -83,7 +83,7 @@ def run(video_path: str = "videos/example.mp4",
     for i, frame in enumerate(video):
 
         # Get Detections
-        # players_detections = get_player_detections(player_detector, frame)
+        players_detections = get_player_detections(player_detector, frame)
         ball_detections = get_ball_detections(ball_detector, frame)
         detections = ball_detections  # + players_detections TODO: uncomment this if you want to track players
 
@@ -94,35 +94,35 @@ def run(video_path: str = "videos/example.mp4",
             frame=frame,
         )
 
-        # player_track_objects = player_tracker.update(
-        #     detections=players_detections, coord_transformations=coord_transformations
-        # )
+        player_track_objects = player_tracker.update(
+            detections=players_detections, coord_transformations=coord_transformations
+        )
 
         ball_track_objects = ball_tracker.update(
             detections=ball_detections, coord_transformations=coord_transformations
         )
 
-        # player_detections = Converter.TrackedObjects_to_Detections(player_track_objects)
+        player_detections = Converter.TrackedObjects_to_Detections(player_track_objects)
         ball_detections = Converter.TrackedObjects_to_Detections(ball_track_objects)
 
-        # player_detections = classifier.predict_from_detections(
-        #     detections=player_detections,
-        #     img=frame,
-        # )
+        player_detections = classifier.predict_from_detections(
+            detections=player_detections,
+            img=frame,
+        )
 
         # Match update
         ball = get_main_ball(ball_detections)
-        # players = Player.from_detections(detections=players_detections, teams=teams)
-        # match.update(players, ball)
+        players = Player.from_detections(detections=players_detections, teams=teams)
+        match.update(players, ball)
         match.update([], ball)
 
         # Draw
         pil_frame = Image.fromarray(frame)
 
         if possession:
-            # pil_frame = Player.draw_players(
-            #     players=players, frame=pil_frame, confidence=False, id=True
-            # )
+            pil_frame = Player.draw_players(
+                players=players, frame=pil_frame, confidence=False, id=True
+            )
 
             pil_frame = path.draw(
                 img=pil_frame,
@@ -158,4 +158,4 @@ def run(video_path: str = "videos/example.mp4",
 
 
 if __name__ == "__main__":
-    run(video_path="videos/prueba.mp4", ball_model_path="models/yolov5x.pt", passes=True, possession=True)
+    run(video_path="videos/prueba.mp4", ball_model_path="models/best.pt", passes=True, possession=True)
