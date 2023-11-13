@@ -48,8 +48,8 @@ class YoloV8(BaseDetector):
         result = pd.DataFrame([], columns=["xmin", "ymin", "xmax", "ymax", "confidence", "class", "name"])
         if len(predictions) > 0:
             boxes = predictions[0].boxes
-            result = pd.DataFrame(boxes.xyxy, columns=["xmin", "ymin", "xmax", "ymax"])
-            result["confidence"] = boxes.conf
-            result["class"] = [int(cls) for cls in boxes.cls]
+            result = pd.DataFrame(boxes.xyxy.cpu().numpy(), columns=["xmin", "ymin", "xmax", "ymax"])
+            result["confidence"] = boxes.conf.cpu()
+            result["class"] = [int(cls) for cls in boxes.cls.cpu()]
             result["name"] = [predictions[0].names[cls] for cls in result["class"]]
         return result

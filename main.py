@@ -36,7 +36,7 @@ def run(video_path: str = "videos/example.mp4",
     hsv_classifier = HSVClassifier(filters=filters)
 
     # Add inertia to classifier
-    classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
+    classifier = InertiaClassifier(classifier=hsv_classifier, inertia=3)
 
     # TODO: Get the teams automatically (maybe from a csv or config file)
     # Teams and Match
@@ -60,14 +60,14 @@ def run(video_path: str = "videos/example.mp4",
     player_tracker = Tracker(
         distance_function=mean_euclidean,
         distance_threshold=250,
-        initialization_delay=3,
+        initialization_delay=5,
         hit_counter_max=90,
     )
 
     ball_tracker = Tracker(
         distance_function=mean_euclidean,
         distance_threshold=150,
-        initialization_delay=20,
+        initialization_delay=3,
         hit_counter_max=2000,
     )
     motion_estimator = MotionEstimator()
@@ -85,7 +85,7 @@ def run(video_path: str = "videos/example.mp4",
         # Get Detections
         players_detections = get_player_detections(player_detector, frame)
         ball_detections = get_ball_detections(ball_detector, frame)
-        detections = ball_detections  # + players_detections TODO: uncomment this if you want to track players
+        detections = ball_detections + players_detections
 
         # Update trackers
         coord_transformations = update_motion_estimator(
@@ -114,7 +114,6 @@ def run(video_path: str = "videos/example.mp4",
         ball = get_main_ball(ball_detections)
         players = Player.from_detections(detections=players_detections, teams=teams)
         match.update(players, ball)
-        match.update([], ball)
 
         # Draw
         pil_frame = Image.fromarray(frame)
@@ -158,4 +157,4 @@ def run(video_path: str = "videos/example.mp4",
 
 
 if __name__ == "__main__":
-    run(video_path="videos/prueba.mp4", ball_model_path="models/best.pt", passes=True, possession=True)
+    run(video_path="videos/TyC_Sports.mp4", ball_model_path="models/best.pt", passes=True, possession=True)
