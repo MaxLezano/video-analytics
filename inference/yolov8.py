@@ -44,7 +44,7 @@ class YoloV8(BaseDetector):
             DataFrame containing the bounding boxes
         """
 
-        predictions = self.model.predict(input_image, imgsz=640)
+        predictions = self.model.predict(input_image, imgsz=640, verbose=False)
         result = pd.DataFrame([], columns=["xmin", "ymin", "xmax", "ymax", "confidence", "class", "name"])
         if len(predictions) > 0:
             boxes = predictions[0].boxes

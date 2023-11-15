@@ -2,6 +2,7 @@ import argparse
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from PIL import Image
 from norfair import Tracker, Video
@@ -36,21 +37,21 @@ def run(video_path: str = "videos/example.mp4",
     hsv_classifier = HSVClassifier(filters=filters)
 
     # Add inertia to classifier
-    classifier = InertiaClassifier(classifier=hsv_classifier, inertia=3)
+    classifier = InertiaClassifier(classifier=hsv_classifier, inertia=10)
 
     # TODO: Get the teams automatically (maybe from a csv or config file)
     # Teams and Match
     home_team = Team(
         name="Gimnasia (Jujuy)",
         abbreviation="GEJ",
-        color=(192, 118, 255),
-        board_color=(192, 118, 255),
+        color=(191, 76, 0),
+        board_color=(191, 76, 0),
         text_color=(0, 0, 0),
     )
     visitor_team = Team(
         name="Chacarita",
         abbreviation="CHA",
-        color=(255, 255, 255)
+        color=(36, 65, 241)
     )
     teams = [home_team, visitor_team]
     match = Match(home=home_team, away=visitor_team, fps=fps)
@@ -60,14 +61,14 @@ def run(video_path: str = "videos/example.mp4",
     player_tracker = Tracker(
         distance_function=mean_euclidean,
         distance_threshold=250,
-        initialization_delay=5,
+        initialization_delay=3,
         hit_counter_max=90,
     )
 
     ball_tracker = Tracker(
         distance_function=mean_euclidean,
         distance_threshold=150,
-        initialization_delay=3,
+        initialization_delay=5,
         hit_counter_max=2000,
     )
     motion_estimator = MotionEstimator()
@@ -80,7 +81,17 @@ def run(video_path: str = "videos/example.mp4",
     possession_background = match.get_possession_background()
     passes_background = match.get_passes_background()
 
-    for i, frame in enumerate(video):
+    # Initialize VideoCapture to count frames
+    print('Detection in progress...')
+    video_capture = cv2.VideoCapture(video_path)
+    total_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Create a progress bar
+    progress_bar = tqdm(total=total_frames, unit="frames")
+
+    # Loop through the frames
+    for i in range(total_frames):
+        ret, frame = video_capture.read()
 
         # Get Detections
         players_detections = get_player_detections(player_detector, frame)
@@ -155,6 +166,13 @@ def run(video_path: str = "videos/example.mp4",
         # Write video
         video.write(frame)
 
+        # Update the progress bar
+        progress_bar.update(1)
+
+    # Close the video capture and progress bar when finished
+    video_capture.release()
+    progress_bar.close()
+
 
 if __name__ == "__main__":
-    run(video_path="videos/TyC_Sports.mp4", ball_model_path="models/best.pt", passes=True, possession=True)
+    run(video_path="videos/TyC_Sports_fragment.mp4", ball_model_path="models/best.pt", passes=True, possession=True)
